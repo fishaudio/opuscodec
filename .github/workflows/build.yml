@@ -1,0 +1,77 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-amd64
+            python-version: "3.11"
+          - os: macos-14
+            target: apple-arm64
+            python-version: "3.11"
+
+    runs-on: ${{ matrix.os }}
+    env:
+      OPUSCODEC_ENABLE_QEXT: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install build toolchain (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool pkg-config make gcc g++
+
+      - name: Install build toolchain (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install autoconf automake libtool pkg-config
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+
+      - name: Build + install package
+        run: |
+          python -m pip install -e .[test]
+
+      - name: Unit tests
+        run: |
+          pytest
+
+      - name: Build wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir dist/wheels .
+
+      - name: Build self-contained opusenc/opusdec binaries
+        run: |
+          bash scripts/build_binaries.sh dist/bin ${{ matrix.target }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: opuscodec-${{ matrix.target }}
+          path: |
+            dist/wheels/*.whl
+            dist/bin/${{ matrix.target }}/opusenc
+            dist/bin/${{ matrix.target }}/opusdec
+            dist/bin/${{ matrix.target }}/versions.txt
+          if-no-files-found: error
