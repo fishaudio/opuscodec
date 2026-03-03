@@ -191,7 +191,7 @@ class OpusBufferedDecoder {
     py::array_t<int16_t> decode(const py::bytes &opus_data) const {
         std::string encoded = opus_data;
         if (encoded.empty()) {
-            return py::array_t<int16_t>({0, 0});
+            return py::array_t<int16_t>(py::array::ShapeContainer{0, 0});
         }
         if (encoded.size() > static_cast<size_t>(std::numeric_limits<opus_int32>::max())) {
             throw_value_error("Input is too large to decode.");
