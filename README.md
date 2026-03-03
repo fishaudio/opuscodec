@@ -86,3 +86,9 @@ Each platform artifact contains:
 - Python wheel
 - `opusenc` / `opusdec` binaries
 - `versions.txt` (dependency versions + qext status)
+
+Release automation:
+
+- On GitHub Release **published** (for example `v0.1.0`), CI also uploads release assets automatically:
+  - platform wheel (`.whl`)
+  - `opuscodec-<tag>-<target>-binaries.tar.gz` (contains `opusenc`, `opusdec`, `versions.txt`)
