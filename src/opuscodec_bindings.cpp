@@ -16,6 +16,11 @@ namespace py = pybind11;
 
 namespace {
 constexpr int kMaxSamplesPerChannel = 120 * 48;
+#if defined(OPUSCODEC_QEXT_ENABLED)
+constexpr bool kQextDefaultEnabled = true;
+#else
+constexpr bool kQextDefaultEnabled = false;
+#endif
 
 [[noreturn]] void throw_value_error(const char *msg) {
     throw py::value_error(msg);
@@ -38,8 +43,14 @@ class OpusBufferedEncoder {
                         int bitrate = OPUS_AUTO,
                         int signal_type = 0,
                         int encoder_complexity = 10,
-                        int decision_delay = 0)
-        : encoder_(nullptr), comments_(nullptr), channels_(channels), has_written_(false), flushed_(false) {
+                        int decision_delay = 0,
+                        bool qext = kQextDefaultEnabled)
+        : encoder_(nullptr),
+          comments_(nullptr),
+          channels_(channels),
+          has_written_(false),
+          flushed_(false),
+          qext_enabled_(false) {
         if (channels < 1 || channels > 8) {
             throw_value_error("Invalid channels, must be in range [1, 8].");
         }
@@ -101,6 +112,32 @@ class OpusBufferedEncoder {
             close();
             throw_value_error("Could not set decision delay.");
         }
+
+#if defined(OPUS_SET_QEXT_REQUEST)
+        if (qext) {
+            if (ope_encoder_ctl(encoder_, OPUS_SET_QEXT(1)) != OPE_OK) {
+                close();
+                throw_value_error("Could not enable QEXT.");
+            }
+        }
+#else
+        if (qext) {
+            close();
+            throw_value_error("QEXT requested but this libopus does not expose OPUS_SET_QEXT.");
+        }
+#endif
+
+#if defined(OPUS_GET_QEXT_REQUEST)
+        opus_int32 qext_value = 0;
+        const int qext_ret = ope_encoder_ctl(encoder_, OPUS_GET_QEXT(&qext_value));
+        if (qext_ret == OPE_OK) {
+            qext_enabled_ = (qext_value != 0);
+        } else {
+            qext_enabled_ = false;
+        }
+#else
+        qext_enabled_ = false;
+#endif
     }
 
     py::bytes write(const py::array_t<int16_t, py::array::c_style | py::array::forcecast> &buffer) {
@@ -168,6 +205,8 @@ class OpusBufferedEncoder {
         }
     }
 
+    bool qext_enabled() const { return qext_enabled_; }
+
     ~OpusBufferedEncoder() { close(); }
 
    private:
@@ -182,6 +221,7 @@ class OpusBufferedEncoder {
     int channels_;
     bool has_written_;
     bool flushed_;
+    bool qext_enabled_;
 };
 
 class OpusBufferedDecoder {
@@ -240,16 +280,18 @@ PYBIND11_MODULE(opuscodec, m) {
     m.doc() = "Python bindings for opusenc/opusdec with vendored libopus builds";
 
     py::class_<OpusBufferedEncoder>(m, "OpusBufferedEncoder")
-        .def(py::init<int, int, int, int, int, int>(),
+        .def(py::init<int, int, int, int, int, int, bool>(),
              py::arg("sample_rate"),
              py::arg("channels"),
              py::arg("bitrate") = OPUS_AUTO,
              py::arg("signal_type") = 0,
              py::arg("encoder_complexity") = 10,
-             py::arg("decision_delay") = 0)
+             py::arg("decision_delay") = 0,
+             py::arg("qext") = kQextDefaultEnabled)
         .def("write", &OpusBufferedEncoder::write, py::arg("buffer"))
         .def("flush", &OpusBufferedEncoder::flush)
-        .def("close", &OpusBufferedEncoder::close);
+        .def("close", &OpusBufferedEncoder::close)
+        .def("qext_enabled", &OpusBufferedEncoder::qext_enabled);
 
     py::class_<OpusBufferedDecoder>(m, "OpusBufferedDecoder")
         .def(py::init<>())

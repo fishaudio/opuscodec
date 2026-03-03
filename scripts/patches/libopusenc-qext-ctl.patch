@@ -1,0 +1,24 @@
+diff --git a/src/opusenc.c b/src/opusenc.c
+index 02231ad..a7a7c3f 100644
+--- a/src/opusenc.c
++++ b/src/opusenc.c
+@@ -945,6 +945,9 @@ int ope_encoder_ctl(OggOpusEnc *enc, int request, ...) {
+     case OPUS_SET_PREDICTION_DISABLED_REQUEST:
+ #ifdef OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST
+     case OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST:
++#endif
++#ifdef OPUS_SET_QEXT_REQUEST
++    case OPUS_SET_QEXT_REQUEST:
+ #endif
+     {
+       opus_int32 value = va_arg(ap, opus_int32);
+@@ -993,6 +996,9 @@ int ope_encoder_ctl(OggOpusEnc *enc, int request, ...) {
+     case OPUS_GET_PREDICTION_DISABLED_REQUEST:
+ #ifdef OPUS_GET_PHASE_INVERSION_DISABLED_REQUEST
+     case OPUS_GET_PHASE_INVERSION_DISABLED_REQUEST:
++#endif
++#ifdef OPUS_GET_QEXT_REQUEST
++    case OPUS_GET_QEXT_REQUEST:
+ #endif
+     {
+       opus_int32 *value = va_arg(ap, opus_int32*);

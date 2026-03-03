@@ -70,3 +70,14 @@ def test_flush_requires_write() -> None:
 def test_qext_default_enabled() -> None:
     expected = os.environ.get("OPUSCODEC_ENABLE_QEXT", "1") != "0"
     assert opuscodec.qext_enabled() is expected
+
+
+def test_encoder_qext_runtime_default_enabled() -> None:
+    encoder = opuscodec.OpusBufferedEncoder(sample_rate=48_000, channels=1)
+    expected = os.environ.get("OPUSCODEC_ENABLE_QEXT", "1") != "0"
+    assert encoder.qext_enabled() is expected
+
+
+def test_encoder_qext_runtime_can_disable() -> None:
+    encoder = opuscodec.OpusBufferedEncoder(sample_rate=48_000, channels=1, qext=False)
+    assert encoder.qext_enabled() is False

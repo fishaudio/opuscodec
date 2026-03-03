@@ -1,0 +1,28 @@
+diff --git a/src/opusenc.c b/src/opusenc.c
+index 266631f..a7741a2 100644
+--- a/src/opusenc.c
++++ b/src/opusenc.c
+@@ -328,6 +328,9 @@ static int is_valid_ctl(int request)
+ #ifdef OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST
+   case OPUS_SET_PHASE_INVERSION_DISABLED_REQUEST:
+ #endif
++#ifdef OPUS_SET_QEXT_REQUEST
++  case OPUS_SET_QEXT_REQUEST:
++#endif
+   case OPE_SET_DECISION_DELAY_REQUEST:
+   case OPE_SET_MUXING_DELAY_REQUEST:
+   case OPE_SET_COMMENT_PADDING_REQUEST:
+@@ -935,6 +938,13 @@ int main(int argc, char **argv)
+     fatal("Error: OPUS_SET_PACKET_LOSS_PERC %d failed: %s\n",
+       expect_loss, ope_strerror(ret));
+   }
++#ifdef OPUS_SET_QEXT_REQUEST
++  ret = ope_encoder_ctl(enc, OPUS_SET_QEXT(1));
++  if (ret != OPE_OK) {
++    fprintf(stderr, "Warning: OPUS_SET_QEXT failed: %s\n",
++      ope_strerror(ret));
++  }
++#endif
+ #ifdef OPUS_SET_LSB_DEPTH
+   ret = ope_encoder_ctl(enc, OPUS_SET_LSB_DEPTH(IMAX(8,IMIN(24,inopt.samplesize))));
+   if (ret != OPE_OK) {

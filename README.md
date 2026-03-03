@@ -4,7 +4,7 @@
 
 1. Python bindings: `OpusBufferedEncoder` + `OpusBufferedDecoder`
 2. Self-contained `opusenc` / `opusdec` binary builds
-3. Opus **QEXT** enabled by default (`--enable-qext`)
+3. Opus **QEXT** enabled by default (build-time + runtime encoder ctl)
 4. Xiph stable dependencies by default:
    - opus `1.6.1`
    - opus-tools `0.2`
@@ -76,7 +76,13 @@ packet = enc.write(x) + enc.flush()
 
 dec = opuscodec.OpusBufferedDecoder()
 y = dec.decode(packet)
-print(y.shape, opuscodec.opus_version(), opuscodec.qext_enabled())
+print(y.shape, opuscodec.opus_version(), opuscodec.qext_enabled(), enc.qext_enabled())
+```
+
+To explicitly disable runtime QEXT for one encoder instance:
+
+```python
+enc = opuscodec.OpusBufferedEncoder(sample_rate=sr, channels=1, qext=False)
 ```
 
 ## Standalone binary encode/decode test (WAV or PCM)
@@ -93,6 +99,13 @@ chmod +x opusenc opusdec
 ```bash
 ./opusenc input.wav output.opus
 ./opusdec output.opus roundtrip.wav
+```
+
+`opusenc` in this repository enables QEXT by default.  
+To force-disable it for comparison tests:
+
+```bash
+./opusenc --set-ctl-int 4056=0 input.wav output-noqext.opus
 ```
 
 ### Raw PCM (16-bit little-endian) roundtrip
@@ -120,6 +133,8 @@ Optional environment variables:
 - `OPUSCODEC_ENABLE_QEXT=0`: disable qext (default `1`)
 - `OPUSCODEC_USE_SYSTEM_DEPS=1`: use system dependencies instead of vendored build (default `0`)
 - `OPUSCODEC_DEPS_PREFIX=/path/to/prefix`: custom dependency install prefix
+
+When QEXT is enabled at build time, packaged `opusenc` binaries also enable `OPUS_SET_QEXT(1)` by default.
 
 ## GitHub Actions
 
