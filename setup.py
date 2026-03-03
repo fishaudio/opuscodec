@@ -54,7 +54,7 @@ long_description = (ROOT / "README.md").read_text(encoding="utf-8")
 ext_modules = [
     Pybind11Extension(
         "opuscodec",
-        ["src/main.cpp"],
+        ["src/opuscodec_bindings.cpp"],
         define_macros=[("VERSION_INFO", __version__)],
         cxx_std=17,
     ),
