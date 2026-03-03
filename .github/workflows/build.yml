@@ -21,9 +21,15 @@ jobs:
           - os: ubuntu-24.04
             target: linux-amd64
             python-version: "3.11"
+          - os: ubuntu-24.04
+            target: linux-amd64
+            python-version: "3.12"
           - os: macos-14
             target: apple-arm64
             python-version: "3.11"
+          - os: macos-14
+            target: apple-arm64
+            python-version: "3.12"
 
     runs-on: ${{ matrix.os }}
     env:
@@ -69,15 +75,24 @@ jobs:
           python -m pip wheel --no-deps --wheel-dir dist/wheels .
 
       - name: Build self-contained opusenc/opusdec binaries
+        if: matrix.python-version == '3.11'
         run: |
           bash scripts/build_binaries.sh dist/bin ${{ matrix.target }}
 
-      - name: Upload artifacts
+      - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: opuscodec-${{ matrix.target }}
+          name: opuscodec-${{ matrix.target }}-py${{ matrix.python-version }}
           path: |
             dist/wheels/*.whl
+          if-no-files-found: error
+
+      - name: Upload binary artifact
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: opuscodec-${{ matrix.target }}-binaries
+          path: |
             dist/bin/${{ matrix.target }}/opusenc
             dist/bin/${{ matrix.target }}/opusdec
             dist/bin/${{ matrix.target }}/versions.txt
@@ -88,8 +103,10 @@ jobs:
         run: |
           mkdir -p dist/release
           cp dist/wheels/*.whl dist/release/
-          tar -czf "dist/release/opuscodec-${{ github.event.release.tag_name }}-${{ matrix.target }}-binaries.tar.gz" \
-            -C "dist/bin/${{ matrix.target }}" opusenc opusdec versions.txt
+          if [ "${{ matrix.python-version }}" = "3.11" ]; then
+            tar -czf "dist/release/opuscodec-${{ github.event.release.tag_name }}-${{ matrix.target }}-binaries.tar.gz" \
+              -C "dist/bin/${{ matrix.target }}" opusenc opusdec versions.txt
+          fi
 
       - name: Upload assets to GitHub Release
         if: github.event_name == 'release'
@@ -99,4 +116,12 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             dist/release/*.whl
+
+      - name: Upload binary bundle to GitHub Release
+        if: github.event_name == 'release' && matrix.python-version == '3.11'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          fail_on_unmatched_files: true
+          files: |
             dist/release/opuscodec-${{ github.event.release.tag_name }}-${{ matrix.target }}-binaries.tar.gz

@@ -31,7 +31,7 @@
 └── opusdec.py   # decoder compatibility export
 ```
 
-## Quick start
+## Quick start (source build)
 
 ```bash
 make test
@@ -47,15 +47,20 @@ make binaries   # build opusenc/opusdec into dist/bin
 make clean      # clean build artifacts
 ```
 
-## Build configuration
+## Install from prebuilt wheel (no local build)
 
-By default, dependencies are downloaded and built automatically (no system Opus libraries required).
+1. Open GitHub Releases and download the wheel matching your OS + Python ABI (`cp311` or `cp312`).
+2. Install directly with pip:
 
-Optional environment variables:
+```bash
+python -m pip install ./opuscodec-0.1.0-cp312-cp312-linux_x86_64.whl
+```
 
-- `OPUSCODEC_ENABLE_QEXT=0`: disable qext (default `1`)
-- `OPUSCODEC_USE_SYSTEM_DEPS=1`: use system dependencies instead of vendored build (default `0`)
-- `OPUSCODEC_DEPS_PREFIX=/path/to/prefix`: custom dependency install prefix
+You can also install from a direct release asset URL:
+
+```bash
+python -m pip install "https://github.com/fishaudio/opuscodec/releases/download/v0.1.0/<wheel-file-name>.whl"
+```
 
 ## Python usage example
 
@@ -74,21 +79,63 @@ y = dec.decode(packet)
 print(y.shape, opuscodec.opus_version(), opuscodec.qext_enabled())
 ```
 
+## Standalone binary encode/decode test (WAV or PCM)
+
+After downloading release binaries, extract:
+
+```bash
+tar -xzf opuscodec-v0.1.0-linux-amd64-binaries.tar.gz
+chmod +x opusenc opusdec
+```
+
+### WAV roundtrip
+
+```bash
+./opusenc input.wav output.opus
+./opusdec output.opus roundtrip.wav
+```
+
+### Raw PCM (16-bit little-endian) roundtrip
+
+Encode raw PCM (`mono`, `48k`, `s16le`) to Opus:
+
+```bash
+./opusenc --raw --raw-bits 16 --raw-rate 48000 --raw-chan 1 input.pcm output.opus
+```
+
+Decode Opus back to PCM:
+
+```bash
+./opusdec output.opus decoded.pcm
+```
+
+> `decoded.pcm` is raw PCM data. If you need WAV output, decode to `*.wav` (example above).
+
+## Build configuration
+
+By default, dependencies are downloaded and built automatically (no system Opus libraries required).
+
+Optional environment variables:
+
+- `OPUSCODEC_ENABLE_QEXT=0`: disable qext (default `1`)
+- `OPUSCODEC_USE_SYSTEM_DEPS=1`: use system dependencies instead of vendored build (default `0`)
+- `OPUSCODEC_DEPS_PREFIX=/path/to/prefix`: custom dependency install prefix
+
 ## GitHub Actions
 
-CI builds and uploads artifacts for:
+CI builds for:
 
 - `macos-14` (arm64)
 - `ubuntu-24.04` (amd64)
+- Python `3.11` and `3.12`
 
-Each platform artifact contains:
+CI artifacts include:
 
-- Python wheel
-- `opusenc` / `opusdec` binaries
-- `versions.txt` (dependency versions + qext status)
+- wheel artifacts per target + python version
+- standalone binary artifacts per target (`opusenc`, `opusdec`, `versions.txt`)
 
 Release automation:
 
-- On GitHub Release **published** (for example `v0.1.0`), CI also uploads release assets automatically:
-  - platform wheel (`.whl`)
-  - `opuscodec-<tag>-<target>-binaries.tar.gz` (contains `opusenc`, `opusdec`, `versions.txt`)
+- On GitHub Release **published** (for example `v0.1.0`), CI uploads release assets automatically:
+  - wheels (`cp311`, `cp312`)
+  - `opuscodec-<tag>-<target>-binaries.tar.gz`
