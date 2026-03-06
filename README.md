@@ -53,13 +53,19 @@ make clean      # clean build artifacts
 2. Install directly with pip:
 
 ```bash
-python -m pip install ./opuscodec-0.1.0-cp312-cp312-linux_x86_64.whl
+python -m pip install ./opuscodec-0.1.1-cp312-cp312-linux_x86_64.whl
 ```
 
 You can also install from a direct release asset URL:
 
 ```bash
-python -m pip install "https://github.com/fishaudio/opuscodec/releases/download/v0.1.0/<wheel-file-name>.whl"
+python -m pip install "https://github.com/fishaudio/opuscodec/releases/download/v0.1.1/<wheel-file-name>.whl"
+```
+
+For supported platforms, PyPI install is now the default:
+
+```bash
+python -m pip install opuscodec==0.1.1
 ```
 
 ## Python usage example
@@ -90,7 +96,7 @@ enc = opuscodec.OpusBufferedEncoder(sample_rate=sr, channels=1, qext=False)
 After downloading release binaries, extract:
 
 ```bash
-tar -xzf opuscodec-v0.1.0-linux-amd64-binaries.tar.gz
+tar -xzf opuscodec-v0.1.1-linux-amd64-binaries.tar.gz
 chmod +x opusenc opusdec
 ```
 
@@ -151,6 +157,8 @@ CI artifacts include:
 
 Release automation:
 
-- On GitHub Release **published** (for example `v0.1.0`), CI uploads release assets automatically:
-  - wheels (`cp311`, `cp312`)
-  - `opuscodec-<tag>-<target>-binaries.tar.gz`
+- On tag push (for example `v0.1.1`), CI automatically:
+  - runs tests + builds wheels (`cp311`, `cp312`)
+  - builds a source distribution (`sdist`)
+  - publishes the wheel + sdist artifacts to PyPI via OIDC
+  - creates a GitHub Release and uploads wheels + `opuscodec-<tag>-<target>-binaries.tar.gz`
