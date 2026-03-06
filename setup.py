@@ -1,15 +1,24 @@
 import os
 import platform
+import re
 import subprocess
-import sys
 from pathlib import Path
 
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
-__version__ = "0.1.1"
-
 ROOT = Path(__file__).resolve().parent
+
+
+def read_project_version() -> str:
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r'^version\s*=\s*"([^"]+)"\s*$', pyproject, re.MULTILINE)
+    if not match:
+        raise RuntimeError("Could not determine package version from pyproject.toml")
+    return match.group(1)
+
+
+__version__ = read_project_version()
 
 
 class OpusCodecBuildExt(build_ext):
@@ -49,8 +58,6 @@ class OpusCodecBuildExt(build_ext):
         super().build_extensions()
 
 
-long_description = (ROOT / "README.md").read_text(encoding="utf-8")
-
 ext_modules = [
     Pybind11Extension(
         "opuscodec",
@@ -61,20 +68,7 @@ ext_modules = [
 ]
 
 setup(
-    name="opuscodec",
-    version=__version__,
-    author="Fish Audio",
-    author_email="lengyue@fish.audio",
-    url="https://github.com/fishaudio/opuscodec",
-    description="Python bindings and self-contained builds for opusenc/opusdec",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
     ext_modules=ext_modules,
-    py_modules=["opusenc", "opusdec"],
-    install_requires=["numpy>=1.24"],
-    extras_require={"test": ["pytest>=8.0"]},
     cmdclass={"build_ext": OpusCodecBuildExt},
     zip_safe=False,
-    python_requires=">=3.9",
-    license="MIT",
 )

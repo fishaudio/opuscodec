@@ -1,11 +1,56 @@
 [build-system]
 requires = [
-  "setuptools>=68",
-  "wheel",
-  "pybind11>=2.11",
-  "numpy>=1.24",
+    "setuptools>=77",
+    "wheel",
+    "pybind11>=2.11",
+    "numpy>=1.24",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "opuscodec"
+version = "0.1.2"
+description = "Python bindings and self-contained Opus CLI builds with QEXT enabled by default."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Fish Audio", email = "lengyue@fish.audio" },
+]
+keywords = ["opus", "audio", "codec", "pybind11", "qext"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/fishaudio/opuscodec"
+Repository = "https://github.com/fishaudio/opuscodec"
+Issues = "https://github.com/fishaudio/opuscodec/issues"
+Releases = "https://github.com/fishaudio/opuscodec/releases"
+
+[tool.setuptools]
+py-modules = ["opusenc", "opusdec"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
@@ -16,9 +61,9 @@ target-version = "py39"
 
 [tool.ruff.lint]
 extend-select = [
-  "B",
-  "I",
-  "PGH",
-  "RUF",
-  "UP",
+    "B",
+    "I",
+    "PGH",
+    "RUF",
+    "UP",
 ]
