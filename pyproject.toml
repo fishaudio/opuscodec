@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opuscodec"
-version = "0.1.2"
+version = "0.1.3"
 description = "Python bindings and self-contained Opus CLI builds with QEXT enabled by default."
 readme = "README.md"
 requires-python = ">=3.9"

@@ -49,9 +49,23 @@ jobs:
           - os: ubuntu-24.04
             target: linux-amd64
             python-version: "3.11"
+            cibw_arch: x86_64
+            cibw_build: cp311-manylinux_x86_64
           - os: ubuntu-24.04
             target: linux-amd64
             python-version: "3.12"
+            cibw_arch: x86_64
+            cibw_build: cp312-manylinux_x86_64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+            python-version: "3.11"
+            cibw_arch: aarch64
+            cibw_build: cp311-manylinux_aarch64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+            python-version: "3.12"
+            cibw_arch: aarch64
+            cibw_build: cp312-manylinux_aarch64
           - os: macos-14
             target: apple-arm64
             python-version: "3.11"
@@ -101,9 +115,11 @@ jobs:
       - name: Build wheel (Linux manylinux)
         if: runner.os == 'Linux'
         env:
-          CIBW_ARCHS_LINUX: x86_64
+          CIBW_ARCHS_LINUX: ${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_ENVIRONMENT_LINUX: OPUSCODEC_ENABLE_QEXT=1
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_BEFORE_ALL_LINUX: >-
             if command -v dnf >/dev/null 2>&1; then
               dnf install -y autoconf automake libtool pkgconfig make gcc gcc-c++ patch curl;
@@ -114,11 +130,6 @@ jobs:
           CIBW_TEST_COMMAND: pytest {project}/tests -q
         run: |
           python -m pip install cibuildwheel==3.4.0
-          case "${{ matrix.python-version }}" in
-            3.11) export CIBW_BUILD='cp311-manylinux_x86_64' ;;
-            3.12) export CIBW_BUILD='cp312-manylinux_x86_64' ;;
-            *) echo "Unsupported Python version for Linux wheel build: ${{ matrix.python-version }}"; exit 1 ;;
-          esac
           python -m cibuildwheel --output-dir dist/wheels
 
       - name: Build wheel (macOS)

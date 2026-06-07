@@ -28,19 +28,20 @@ Stable dependency set:
 ### PyPI (recommended)
 
 ```bash
-python -m pip install opuscodec==0.1.2
+python -m pip install opuscodec==0.1.3
 ```
 
 ### GitHub Release asset
 
 ```bash
-python -m pip install "https://github.com/fishaudio/opuscodec/releases/download/v0.1.2/<wheel-file-name>.whl"
+python -m pip install "https://github.com/fishaudio/opuscodec/releases/download/v0.1.3/<wheel-file-name>.whl"
 ```
 
-Example Linux wheel name:
+Example Linux wheel install commands. Exact manylinux policy tags may include more than one compatible tag.
 
 ```bash
-python -m pip install ./opuscodec-0.1.2-cp312-cp312-manylinux_2_28_x86_64.whl
+python -m pip install ./opuscodec-0.1.3-cp312-cp312-*x86_64.whl
+python -m pip install ./opuscodec-0.1.3-cp312-cp312-*aarch64.whl
 ```
 
 ### Source build
@@ -88,7 +89,8 @@ enc = opuscodec.OpusBufferedEncoder(sample_rate=48000, channels=1, qext=False)
 After downloading release binaries:
 
 ```bash
-tar -xzf opuscodec-v0.1.2-linux-amd64-binaries.tar.gz
+tar -xzf opuscodec-v0.1.3-linux-amd64-binaries.tar.gz
+tar -xzf opuscodec-v0.1.3-linux-arm64-binaries.tar.gz
 chmod +x opusenc opusdec
 ```
 
@@ -152,10 +154,10 @@ When QEXT is enabled at build time, packaged `opusenc` binaries also enable `OPU
 
 ## Release automation
 
-On tag push (for example `v0.1.2`), GitHub Actions will:
+On tag push (for example `v0.1.3`), GitHub Actions will:
 
 - run tests on Linux + macOS
-- build PyPI-compatible manylinux wheels for Linux
+- build PyPI-compatible manylinux wheels for Linux x86_64 + aarch64
 - build macOS arm64 wheels
 - build an `sdist`
 - publish wheel + sdist artifacts to PyPI via OIDC
